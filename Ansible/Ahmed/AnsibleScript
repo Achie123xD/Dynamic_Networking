@@ -1,0 +1,43 @@
+BasisConfig Ansible
+- hosts: routers
+  gather_facts: false
+  vars:
+    hostname: "{{ inventory_hostname }}"
+    username: admin
+    password: plain_text_password
+    enable_password: plain_text_enable_password
+    encrypted_password: encrypted_password
+    encrypted_enable_password: encrypted_enable_password
+    description: "{{ inventory_hostname }} device"
+  tasks:
+  - name: configure hostname
+    ios_config:
+      lines:
+        - hostname {{ hostname }}
+      parents: "hostname {{ hostname }}"
+      provider: "{{ hostvars[inventory_hostname].ansible_network_os }}"
+      authorize: yes
+      auth_pass: "{{ password }}"
+  - name: set enable password
+    ios_config:
+      lines:
+        - enable secret {{ enable_password }}
+      provider: "{{ hostvars[inventory_hostname].ansible_network_os }}"
+      authorize: yes
+      auth_pass: "{{ password }}"
+  - name: set username and password
+    ios_config:
+      lines:
+        - username {{ username }} privilege 15 password {{ encrypted_password }}
+      provider: "{{ hostvars[inventory_hostname].ansible_network_os }}"
+      authorize: yes
+      auth_pass: "{{ enable_password }}"
+  - name: set description
+    ios_config:
+      lines:
+        - interface {{ inventory_hostname }}
+        - description {{ description }}
+      parents: "interface {{ inventory_hostname }}"
+      provider: "{{ hostvars[inventory_hostname].ansible_network_os }}"
+      authorize: yes
+      auth_pass: "{{ password }}"
